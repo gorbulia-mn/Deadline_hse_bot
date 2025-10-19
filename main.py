@@ -1,7 +1,7 @@
 import telebot
 from telebot import types
 from config import BOT_TOKEN
-from keyboards import useful_urls_keyboards, role_keyboard
+from keyboards import useful_urls_keyboards, role_keyboard, all_button_for_user
 from db import get_random_prediction
 
 bot = telebot.TeleBot(BOT_TOKEN)
@@ -34,11 +34,14 @@ def useful_urls(message):
         message.chat.id, "Выбери полезную ссылку для себя:", reply_markup=useful_urls_keyboards())
 
 
-@bot.message_handler(func=lambda m: m.text == "cookie")
+@bot.message_handler(func=lambda m: m.text == "Печенька!")
 def send_cookie(message):
     bot.send_message(
         message.chat.id, f"Сегодня ваша печенька говорит:{get_random_prediction()}")
 
+@bot.message_handler(commands=[''])
+def user_buttons(message):
+    bot.send_message(message.chat.id, reply_markup=all_button_for_user)
 
 @bot.message_handler(commands=['ping'])
 def pong(message):
