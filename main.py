@@ -14,13 +14,19 @@ def main(message):  # ПЕРЕДЕЛАТЬ
     bot.register_next_step_handler(message, on_click)
 
 
-def on_click(message):
+@bot.message_handler(func=lambda m: m.text == "Пользователь")
+def user_student(message):
     remove = types.ReplyKeyboardRemove()
     bot.send_message(message.chat.id, "Спасибо за выбор!", reply_markup=remove)
-    if message.text == "Пользователь":
-        useful_urls(message)
-    else:
-        bot.send_message(message.chat.id, "Пока не знаю, что с вами делать :(")
+    bot.send_message(message.chat.id, "Выбери полезную ссылку:",
+                     reply_markup=useful_urls_keyboards())
+
+
+@bot.message_handler(func=lambda m: m.text == "Админ")
+def user_admin(message):
+    remove = types.ReplyKeyboardRemove()
+    bot.send_message(message.chat.id, "Спасибо за выбор!", reply_markup=remove)
+    bot.send_message(message.chat.id, "Пока не знаю, что с вами делать :(")
 
 
 @bot.message_handler(commands=['useful_urls'])
