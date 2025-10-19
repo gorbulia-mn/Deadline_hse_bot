@@ -31,17 +31,19 @@ def user_admin(message):
 @bot.message_handler(commands=['useful_urls'])
 def useful_urls(message):
     bot.send_message(
-        message.chat.id, "Выбери полезную ссылку для себя:", reply_markup=useful_urls_keyboards())
+        message.chat.id, "Выберите полезную ссылку:", reply_markup=useful_urls_keyboards())
 
 
 @bot.message_handler(func=lambda m: m.text == "Печенька!")
 def send_cookie(message):
     bot.send_message(
-        message.chat.id, f"Сегодня ваша печенька говорит:{get_random_prediction()}")
+        message.chat.id, get_random_prediction())
 
-@bot.message_handler(commands=[''])
+
+@bot.message_handler(commands=['buttons'])
 def user_buttons(message):
-    bot.send_message(message.chat.id, reply_markup=all_button_for_user)
+    bot.send_message(message.chat.id, "Выберите, что вам нужно", reply_markup=all_button_for_user())
+
 
 @bot.message_handler(commands=['ping'])
 def pong(message):
