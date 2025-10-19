@@ -29,4 +29,9 @@ def useful_urls(message):
         message.chat.id, "Выбери полезную ссылку для себя:", reply_markup=useful_urls_keyboards())
 
 
+@bot.message_handler(commands=['ping'])
+def pong(message):
+    bot.send_message(message.chat.id, "pong!")
+
+
 bot.infinity_polling()
