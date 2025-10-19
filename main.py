@@ -2,7 +2,7 @@ import telebot
 from telebot import types
 from dotenv import load_dotenv
 import os
-import sqlite3 # подключаемся к базе данных
+import sqlite3  # подключаемся к базе данных
 
 # Загружаем .env из текущей папки
 load_dotenv()
@@ -93,3 +93,5 @@ bot.infinity_polling()
 # ВАЖНЫЕ УРОКИ
 # 3 урок понадобится, так как там объясняется, как обрабатывать callback_data
 # и там же он показывает, как отправлять фото от бота
+
+# ПРОВЕРКА
