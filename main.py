@@ -11,7 +11,6 @@ bot = telebot.TeleBot(BOT_TOKEN)
 def main(message):  # ПЕРЕДЕЛАТЬ
     bot.send_message(
         message.chat.id, "<b>Привет</b>! Выбери, кем ты являешься для этого бота:", parse_mode='html', reply_markup=role_keyboard())
-    bot.register_next_step_handler(message, on_click)
 
 
 @bot.message_handler(func=lambda m: m.text == "Пользователь")
