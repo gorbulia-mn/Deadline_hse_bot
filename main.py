@@ -23,7 +23,7 @@ def on_click(message):
         bot.send_message(message.chat.id, "Пока не знаю, что с вами делать :(")
 
 
-@bot.message_handler(commands=['usefull_urls'])
+@bot.message_handler(commands=['useful_urls'])
 def useful_urls(message):
     bot.send_message(
         message.chat.id, "Выбери полезную ссылку для себя:", reply_markup=useful_urls_keyboards())
