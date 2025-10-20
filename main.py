@@ -2,7 +2,7 @@ import telebot
 from telebot import types
 from config import BOT_TOKEN
 from keyboards import useful_urls_keyboards, role_keyboard, all_button_for_user, all_buttons_for_admin
-from db import get_random_prediction
+from db import get_random_prediction, init_hw
 from config import ADMINS
 
 bot = telebot.TeleBot(BOT_TOKEN)
@@ -42,6 +42,12 @@ def admin_buttons(message):
     if message.from_user.id in ADMINS:
         bot.send_message(message.chat.id, "Выберите, что вам нужно",
                          reply_markup=all_buttons_for_admin())
+
+
+@bot.message_handler(func=lambda m: m.text == "Добавить дедлайн")
+def admin_add_hw(message):
+    init_hw()
+    bot.send_message(message.chat.id, "Создалась база данных дз?")
 
 
 @bot.message_handler(commands=['ping'])
