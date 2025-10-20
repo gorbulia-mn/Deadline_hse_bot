@@ -1,6 +1,7 @@
 import sqlite3
 import random
 
+# test2 
 
 def get_random_prediction():
     with open("predictions.txt", "r", encoding="utf-8") as f:
