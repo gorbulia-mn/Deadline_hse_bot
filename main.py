@@ -6,7 +6,7 @@ from db import get_random_prediction
 
 bot = telebot.TeleBot(BOT_TOKEN)
 
-
+# test commit
 @bot.message_handler(commands=['start'])
 def main(message):  # ПЕРЕДЕЛАТЬ
     bot.send_message(
