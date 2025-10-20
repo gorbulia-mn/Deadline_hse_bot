@@ -62,7 +62,3 @@ def init_hw():
     conn.close()
 
 
-def add_hw():
-    conn = sqlite3.connect('hw_database.sql')
-    cur = conn.cursor()
-    cur.execute('')
