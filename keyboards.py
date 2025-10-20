@@ -34,3 +34,17 @@ def all_button_for_user():
     markup.row(btn2, btn4)
     markup.row(btn1, btn3)
     return markup
+
+
+def all_buttons_for_admin():
+    markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
+    btn1 = types.KeyboardButton("Добавить дедлайн")
+    btn2 = types.KeyboardButton("Добавить экз")
+    btn3 = types.KeyboardButton("Печенька!")
+    btn4 = types.KeyboardButton("Weekly")
+    btn5 = types.KeyboardButton("Ближайшие экзы")
+    btn6 = types.KeyboardButton("След. неделя")
+    markup.row(btn1, btn2)
+    markup.row(btn4, btn6)
+    markup.row(btn3, btn5)
+    return markup
