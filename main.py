@@ -36,7 +36,8 @@ def user_buttons(message):
         bot.send_message(message.chat.id, "Выбери, что тебе нужно",
                          reply_markup=all_button_for_user())
     else:
-        bot.send_message(message.chat.id, "Зачем тебе эти кнопки для пользователя? Они у тебя и так есть...", reply_markup=all_buttons_for_admin())
+        bot.send_message(message.chat.id, "Эти кнопки не для тебя",
+                         reply_markup=all_buttons_for_admin())  # ПРОБЛЕМА С ВЫВОДОМ
 
 
 @bot.message_handler(commands=['buttons_admin'])
@@ -45,14 +46,15 @@ def admin_buttons(message):
         bot.send_message(message.chat.id, "Выбери, что тебе нужно",
                          reply_markup=all_buttons_for_admin())
     else:
-        bot.send_message(message.chat.id, "Ата-та! Куда полез, маленький пользователь? Это не для тебя...", reply_markup=all_button_for_user())
+        bot.send_message(message.chat.id, "Эти кнопки не для тебя",
+                         reply_markup=all_button_for_user())
 
 
 @bot.message_handler(func=lambda m: m.text == "Добавить дедлайн")
 def admin_add_hw(message):
     init_hw()
     bot.send_message(
-        message.chat.id, "Напиши дедлайн в виде такой строки:\n\n<i>название_предмета тип_дз(дз/идз) номер_дз дата_дедлайна время_дедлайна<i>", parse_mode="HTML")
+        message.chat.id, "Напиши дедлайн в виде такой строки:\n\n<i>название_предмета тип_дз(дз/идз) номер_дз дата_дедлайна время_дедлайна</i>", parse_mode="HTML")
     bot.register_next_step_handler(message, hw_str)
 
 
@@ -79,4 +81,8 @@ def pong(message):
     bot.send_message(message.chat.id, "pong!")
 
 
-bot.infinity_polling()
+if __name__ == "__main__":
+    import os
+    print("PID:", os.getpid(), "TOKEN_TAIL:", BOT_TOKEN[-6:])
+    bot.remove_webhook()
+    bot.infinity_polling(skip_pending=True)
