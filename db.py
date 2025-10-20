@@ -56,9 +56,29 @@ def list_future_exams():
 def init_hw():
     conn = sqlite3.connect('hw_database.sql')
     cur = conn.cursor()
-    cur.execute('CREATE TABLE IF NOT EXISTS my_homework(id INTEGER PRIMARY KEY AUTOINCREMENT, number INTEGER, date_dd TEXT NOT NULL, time_dd TEXT NOT NULL, flag_completed INTEGER NOT NULL DEFAULT 0)')
+    cur.execute('CREATE TABLE IF NOT EXISTS my_homework(id INTEGER PRIMARY KEY AUTOINCREMENT, name_subject TEXT NOT NULL, type_hw TEXT NOT NULL, number INTEGER, date_dd TEXT NOT NULL, flag_completed INTEGER NOT NULL DEFAULT 0)')
     conn.commit()
     cur.close()
     conn.close()
 
 
+def add_hw(sub: str, t: str,  n: int, date: dt.datetime, f=0):
+    conn = sqlite3.connect('hw_database.sql')
+    cur = conn.cursor()
+    cur.execute('INSERT INTO my_homework(name_subject, type_hw, number, date_dd, flag_comleted) VALUES(?, ?, ?, ?)',
+                (sub, t, n, date.strftime("%Y-%m-%d %H:%M"), f))
+    conn.commit()
+    cur.close()
+    conn.close()
+
+
+def list_hw():
+    time_now = dt.datetime().now()
+    conn = sqlite3.connect('hw_database.sql')
+    cur = conn.cursor()
+    cur.execute('SELECT id, type_hw, name_subject, number, date_dd, flag_comleted FROM my_homework WHERE date_dd >= ? ORDER BY date_dd ASC',
+                (time_now.strftime("%Y-%m-%d %H:%M")))
+    all_hw = cur.fetchall()
+    cur.close()
+    conn.close()
+    return [{"id": one[0], "type_hw": one[1], "number": one[2], "time": dt.datetime.strptime(one[3], "%Y-%m-%d %H:%M"), "flag": one[-1]} for one in all_hw]
