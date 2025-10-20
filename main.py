@@ -1,38 +1,21 @@
 import telebot
 from telebot import types
 from config import BOT_TOKEN
-from keyboards import useful_urls_keyboards, role_keyboard, all_button_for_user
+from keyboards import useful_urls_keyboards, role_keyboard, all_button_for_user, all_buttons_for_admin
 from db import get_random_prediction
 from config import ADMINS
 
 bot = telebot.TeleBot(BOT_TOKEN)
 
 
-
 @bot.message_handler(commands=['start'])
 def main(message):  # ПЕРЕДЕЛАТЬ
-    global your_role
     if message.from_user.id in ADMINS:
         bot.send_message(
-            message.chat.id, "Привет! Ты админ.", reply_markup=role_keyboard())
+            message.chat.id, "Привет! Ты админ.", reply_markup=all_buttons_for_admin())
     else:
         bot.send_message(
-            message.chat.id, "Привет! Ты пользователь.", reply_markup=role_keyboard())
-
-
-@bot.message_handler(func=lambda m: m.text == "Пользователь")
-def user_student(message):
-    remove = types.ReplyKeyboardRemove()
-    bot.send_message(message.chat.id, "Спасибо за выбор!", reply_markup=remove)
-    bot.send_message(message.chat.id, "Выбери полезную ссылку:",
-                     reply_markup=useful_urls_keyboards())
-
-
-@bot.message_handler(func=lambda m: m.text == "Админ")
-def user_admin(message):
-    remove = types.ReplyKeyboardRemove()
-    bot.send_message(message.chat.id, "Спасибо за выбор!", reply_markup=remove)
-    bot.send_message(message.chat.id, "Пока не знаю, что с вами делать :(")
+            message.chat.id, "Привет! Ты пользователь.", reply_markup=all_button_for_user())
 
 
 @bot.message_handler(commands=['useful_urls'])
@@ -47,10 +30,18 @@ def send_cookie(message):
         message.chat.id, get_random_prediction())
 
 
-@bot.message_handler(commands=['buttons'])
+@bot.message_handler(commands=['buttons_user'])
 def user_buttons(message):
-    bot.send_message(message.chat.id, "Выберите, что вам нужно",
-                     reply_markup=all_button_for_user())
+    if message.from_user.id not in ADMINS:
+        bot.send_message(message.chat.id, "Выберите, что вам нужно",
+                         reply_markup=all_button_for_user())
+
+
+@bot.message_handler(commands=['buttons_admin'])
+def admin_buttons(message):
+    if message.from_user.id in ADMINS:
+        bot.send_message(message.chat.id, "Выберите, что вам нужно",
+                         reply_markup=all_buttons_for_admin())
 
 
 @bot.message_handler(commands=['ping'])
