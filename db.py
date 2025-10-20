@@ -81,5 +81,5 @@ def list_hw():
     all_hw = cur.fetchall()
     cur.close()
     conn.close()
-    return [{"id": one[0], "type_hw": one[1], "name_subject": one[2], "number": one[3], "time": dt.datetime.strptime(one[4], "%Y-%m-%d %H:%M"), "flag": one[-1]} for one in all_hw]
+    return [{"id": one[0], "type_hw": one[1], "name_subject": one[2], "number": one[3], "time": dt.datetime.strptime(one[4], "%Y-%m-%d %H:%M"), "flag": one[5]} for one in all_hw]
 
