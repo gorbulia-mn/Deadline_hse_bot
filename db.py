@@ -32,3 +32,25 @@ def list_future_exams():
              "at": dt.datetime.strptime(r[1], "%Y-%m-%d %H:%M"),
              "course": r[2],
              "exam_type": r[3]} for r in rows]
+def homework_creating():
+    connection = sqlite3.connect('mydatabase.db')
+    cursor = connection.cursor()
+
+    cursor.execute(''' CREATE TABLE IF NOT EXISTS homework(
+                   subject TEXT NOT NULL,
+                   number INTEGER,
+                   day TEXT,
+                   flag, BLOB
+                   )
+                   ''')
+    connection.commit()
+    connection.close()
+
+def homework_adding(subject, number, day, flag=0):
+    connection = sqlite3.connect('mydatabase.db')
+    cursor = connection.cursor()
+    cursor.execute('UPDATE ')
+
+
+
+

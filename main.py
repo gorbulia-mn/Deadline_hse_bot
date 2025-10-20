@@ -3,14 +3,21 @@ from telebot import types
 from config import BOT_TOKEN
 from keyboards import useful_urls_keyboards, role_keyboard, all_button_for_user
 from db import get_random_prediction
+from config import ADMINS
 
 bot = telebot.TeleBot(BOT_TOKEN)
 
-# test commit
+
+
 @bot.message_handler(commands=['start'])
 def main(message):  # ПЕРЕДЕЛАТЬ
-    bot.send_message(
-        message.chat.id, "<b>Привет</b>! Выбери, кем ты являешься для этого бота:", parse_mode='html', reply_markup=role_keyboard())
+    global your_role
+    if message.from_user.id in ADMINS:
+        bot.send_message(
+            message.chat.id, "Привет! Ты админ.", reply_markup=role_keyboard())
+    else:
+        bot.send_message(
+            message.chat.id, "Привет! Ты пользователь.", reply_markup=role_keyboard())
 
 
 @bot.message_handler(func=lambda m: m.text == "Пользователь")
@@ -42,7 +49,8 @@ def send_cookie(message):
 
 @bot.message_handler(commands=['buttons'])
 def user_buttons(message):
-    bot.send_message(message.chat.id, "Выберите, что вам нужно", reply_markup=all_button_for_user())
+    bot.send_message(message.chat.id, "Выберите, что вам нужно",
+                     reply_markup=all_button_for_user())
 
 
 @bot.message_handler(commands=['ping'])

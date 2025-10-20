@@ -3,3 +3,4 @@ import os
 load_dotenv()
 
 BOT_TOKEN = os.getenv("BOT_TOKEN")
+ADMINS = {727825631, 1838146444}
