@@ -3,14 +3,13 @@ import random
 import datetime as dt
 from pathlib import Path
 
+DB_PATH_EXAM = Path("deadlines_exam.sqlite3")
+
 
 def get_random_prediction():
     with open("predictions.txt", "r", encoding="utf-8") as f:
         all_of_them = [line.strip() for line in f if line.strip()]
     return random.choice(all_of_them)
-
-
-DB_PATH_EXAM = Path("deadlines_exam.sqlite3")
 
 
 def init_exam():
@@ -41,14 +40,6 @@ def list_future_exams():
              "exam_type": r[3]} for r in rows]
 
 
-# def homework_adding(subject, number, day, flag=0):
-#     connection = sqlite3.connect('mydatabase.db')
-#     cursor = connection.cursor()
-#     cursor.execute('INSERT into homework(subject, number, day, flag) VALUES(?, ?, ?)', (subject, number, day.strftime("%Y-%m-%d %H:%M"), flag=0))
-#     connection.commit()
-#     connection.close()
-
-
 # def homework_done():
 #     pass
 
@@ -62,24 +53,23 @@ def init_hw():
     conn.close()
 
 
-def add_hw(sub: str, t: str,  n: int, date: dt.datetime, f=0):
+def add_hw(sub: str, t: str,  n: int, date: dt.datetime, f: int = 0):
     conn = sqlite3.connect('hw_database.sql')
     cur = conn.cursor()
-    cur.execute('INSERT INTO my_homework(name_subject, type_hw, number, date_dd, flag_comleted) VALUES(?, ?, ?, ?)',
-                (sub, t, n, date.strftime("%Y-%m-%d %H:%M"), f))
+    cur.execute('INSERT INTO my_homework(name_subject, type_hw, number, date_dd, flag_completed) VALUES(?, ?, ?, ?, ?)',
+                (sub, t, n, date.strftime("%d.%m.%y %H:%M"), f))
     conn.commit()
     cur.close()
     conn.close()
 
 
-def list_hw():
+def list_future_hw():
     time_now = dt.datetime.now()
     conn = sqlite3.connect('hw_database.sql')
     cur = conn.cursor()
-    cur.execute('SELECT id, type_hw, name_subject, number, date_dd, flag_comleted FROM my_homework WHERE date_dd >= ? ORDER BY date_dd ASC',
-                (time_now.strftime("%Y-%m-%d %H:%M")))
+    cur.execute('SELECT id, type_hw, name_subject, number, date_dd, flag_completed FROM my_homework WHERE date_dd >= ? ORDER BY date_dd ASC',
+                (time_now.strftime("%d.%m.%y %H:%M"),))
     all_hw = cur.fetchall()
     cur.close()
     conn.close()
-    return [{"id": one[0], "type_hw": one[1], "name_subject": one[2], "number": one[3], "time": dt.datetime.strptime(one[4], "%Y-%m-%d %H:%M"), "flag": one[5]} for one in all_hw]
-
+    return [{"id": one[0], "type_hw": one[1], "name_subject": one[2], "number": one[3], "time": dt.datetime.strptime(one[4], "%d.%m.%y %H:%M"), "flag": one[5]} for one in all_hw]

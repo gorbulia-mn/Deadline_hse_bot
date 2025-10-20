@@ -18,13 +18,6 @@ def useful_urls_keyboards():
     return markup
 
 
-def role_keyboard():
-    markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
-    markup.row(types.KeyboardButton("Пользователь"),
-               types.KeyboardButton("Админ"))
-    return markup
-
-
 def all_button_for_user():
     markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
     btn1 = types.KeyboardButton("Печенька!")
