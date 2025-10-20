@@ -73,7 +73,7 @@ def add_hw(sub: str, t: str,  n: int, date: dt.datetime, f=0):
 
 
 def list_hw():
-    time_now = dt.datetime().now()
+    time_now = dt.datetime.now()
     conn = sqlite3.connect('hw_database.sql')
     cur = conn.cursor()
     cur.execute('SELECT id, type_hw, name_subject, number, date_dd, flag_comleted FROM my_homework WHERE date_dd >= ? ORDER BY date_dd ASC',
@@ -81,4 +81,5 @@ def list_hw():
     all_hw = cur.fetchall()
     cur.close()
     conn.close()
-    return [{"id": one[0], "type_hw": one[1], "number": one[2], "time": dt.datetime.strptime(one[3], "%Y-%m-%d %H:%M"), "flag": one[-1]} for one in all_hw]
+    return [{"id": one[0], "type_hw": one[1], "name_subject": one[2], "number": one[3], "time": dt.datetime.strptime(one[4], "%Y-%m-%d %H:%M"), "flag": one[-1]} for one in all_hw]
+
