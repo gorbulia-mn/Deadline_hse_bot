@@ -110,4 +110,3 @@ def schedule_exam_reminders_for_all(course: str, exam_type: str, at: dt.datetime
 
 
 bot.infinity_polling()
-
