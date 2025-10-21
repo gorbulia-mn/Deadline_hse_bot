@@ -68,7 +68,7 @@ def admin_buttons(message):
 
 @bot.message_handler(commands=['ping'])
 def pong(message):
-    bot.send_message(message.chat.id, "pong!")
+    bot.send_message(message.chat.id, "pong pong!")
 
 
 @bot.message_handler(func=lambda m: m.text == 'Ближайшие экзы')
@@ -102,7 +102,7 @@ def notify_exam_all(course: str, exam_type: str, at: dt.datetime, time_left_labe
 
 def schedule_exam_reminders_for_all(course: str, exam_type: str, at: dt.datetime):
     now = dt.datetime.now()
-    items = [("за 7 дней", dt.timedelta(days=7)), ("за 3 дня", dt.timedelta(days=3)), ("за 3 часа", dt.timedelta(hours=3))]
+    items = [("7 дней", dt.timedelta(days=7)), ("3 дня", dt.timedelta(days=3)), ("3 часа", dt.timedelta(hours=3))]
     for label, delta in items:
         run_at = at - delta
         if run_at > now:
