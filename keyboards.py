@@ -24,8 +24,11 @@ def all_button_for_user():
     btn2 = types.KeyboardButton("Weekly")
     btn3 = types.KeyboardButton("Ближайшие экзы")
     btn4 = types.KeyboardButton("След. неделя")
+    btn5 = types.KeyboardButton("Активировать напоминания")
+    btn6 = types.KeyboardButton("Отключить напоминания")
     markup.row(btn2, btn4)
     markup.row(btn1, btn3)
+    markup.row(btn5, btn6)
     return markup
 
 

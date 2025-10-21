@@ -73,3 +73,28 @@ def list_future_hw():
     cur.close()
     conn.close()
     return [{"id": one[0], "type_hw": one[1], "name_subject": one[2], "number": one[3], "time": dt.datetime.strptime(one[4], "%d.%m.%y %H:%M"), "flag": one[5]} for one in all_hw]
+
+
+def init_users():
+    con = sqlite3.connect(DB_PATH_EXAM)
+    con.execute('CREATE TABLE IF NOT EXISTS users(chat_id INTEGER PRIMARY KEY, flag INTEGER NOT NULL DEFAULT 0)')
+    con.commit()
+    con.close()
+
+def add_user(chat_id: int):
+    con = sqlite3.connect(DB_PATH_EXAM)
+    con.execute('INSERT OR IGNORE INTO users(chat_id) VALUES (?)', (chat_id,))
+    con.commit()
+    con.close()
+
+def set_user_flag(chat_id: int, value: int):
+    con = sqlite3.connect(DB_PATH_EXAM)
+    con.execute('UPDATE users SET flag=? WHERE chat_id=?', (value, chat_id))
+    con.commit()
+    con.close()
+
+def list_users_flag() -> list[int]:
+    con = sqlite3.connect(DB_PATH_EXAM)
+    rows = [r[0] for r in con.execute('SELECT chat_id FROM users WHERE flag=1').fetchall()]
+    con.close()
+    return rows
