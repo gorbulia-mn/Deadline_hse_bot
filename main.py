@@ -83,15 +83,20 @@ def handle_nearest_exams(message):
 def admin_add_exam(message):
     init_exam()
     bot.send_message(
-        message.chat.id, "Напиши экзамен в виде строки: <курс> <тип_экза> <дд.мм.гггг> <чч:мм>")
+        message.chat.id, "Напиши экзамен в виде строки:\n\n<i>[курс] [тип_экза] [дд.мм.гггг] [чч:мм]</i>", parse_mode="HTML")
     bot.register_next_step_handler(message, exam_str)
 
 
 def exam_str(message):
-    course, exam_type, at = split_text_exam(message.text)
-    add_exam(at=at, course=course, exam_type=exam_type)
-    schedule_exam_reminders_for_all(course, exam_type, at)
-    bot.send_message(message.chat.id, "Твой экзамен записан!")
+    try:
+        course, exam_type, at = split_text_exam(message.text)
+    except Exception:
+        bot.send_message(message.chat.id, "Возможно, ты записал экзамен не по формату. Попробуй еще раз.",
+                         reply_markup=all_buttons_for_admin())
+    else:
+        add_exam(at=at, course=course, exam_type=exam_type)
+        schedule_exam_reminders_for_all(course, exam_type, at)
+        bot.send_message(message.chat.id, "Твой экзамен записан!")
 
 
 def notify_exam_all(course: str, exam_type: str, at: dt.datetime, time_left_label: str):
@@ -118,14 +123,19 @@ def schedule_exam_reminders_for_all(course: str, exam_type: str, at: dt.datetime
 def admin_add_hw(message):
     init_hw()
     bot.send_message(
-        message.chat.id, "Напиши дедлайн в виде такой строки:\n\n<i>название_предмета тип_дз(дз/идз) номер_дз дата_дедлайна (дд.мм.гг) время_дедлайна (чч:мм) </i>", parse_mode="HTML")
+        message.chat.id, "Напиши дедлайн в виде такой строки:\n\n<i>[название_предмета] [тип_дз(дз/идз)] [номер_дз] [дд.мм.гг] [чч:мм]</i>", parse_mode="HTML")
     bot.register_next_step_handler(message, hw_str)
 
 
 def hw_str(message):
-    s, t, n, d = split_text_hw(message.text)
-    add_hw(s, t, n, d)
-    bot.send_message(message.chat.id, "Твой дедлайн по д/з записан!")
+    try:
+        s, t, n, d = split_text_hw(message.text)
+    except Exception:
+        bot.send_message(message.chat.id, "Возможно, ты записал д/з не по формату. Попробуй еще раз.",
+                         reply_markup=all_button_for_user())
+    else:
+        add_hw(s, t, n, d)
+        bot.send_message(message.chat.id, "Твой дедлайн по д/з записан!")
 
 
 # @bot.message_handler(func=lambda m: m.text == "Weekly")
