@@ -85,7 +85,8 @@ def init_users():
 
 def add_user(chat_id: int):
     con = sqlite3.connect(DB_PATH_EXAM)
-    con.execute('INSERT OR IGNORE INTO users(chat_id) VALUES (?)', (chat_id,))
+    con.execute(
+        'INSERT OR IGNORE INTO users(chat_id) VALUES (?)', (chat_id,))
     con.commit()
     con.close()
 
