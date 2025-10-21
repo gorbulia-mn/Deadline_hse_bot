@@ -16,8 +16,29 @@ def format_exams_list(exams: list[dict]) -> str:
     return "\n".join(lines)
 
 
+exam_case = {"экзамен": "экзамена", "коллоквиум": "коллоквиума", "зачёт": "зачёта", "КР": "КР"}
+course_case = {"питон": "питону", "матан": "матану", "линал": "линалу", "дискра": "дискре", "орг": "орг", "история": "истории", "бжд": "бжд"}
+
+def course_dative(name: str) -> str:
+    n = name.strip()
+    base = course_case.get(n.lower(), n)
+    return base.capitalize() if n[:1].isupper() else base
+
+def exam_type_genitive(x: str) -> str:
+    return exam_case.get(x.strip().lower(), x)
+
+
+def normalize_time_left(s: str) -> str:
+    s = s.strip()
+    return s[3:] if s.lower().startswith("за ") else s
+
+
 def format_exam_reminder(course: str, exam_type: str, at: dt.datetime, time_left: str) -> str:
-    return f"Напоминание\nДо {exam_type} по <b>{course}</b> осталось {time_left}.\nДата: {d(at)}\n Время: <b>{t(at)}</b>"
+    et = exam_type_genitive(exam_type)
+    tl = normalize_time_left(time_left)
+    cd = course_dative(course)
+    return f"Напоминание\nДо {et} по <b>{cd}</b> осталось {tl}.\nДата: {d(at)}\nВремя: <b>{t(at)}</b>"
+
 
 
 def split_text_hw(text: str) -> tuple[str, str, int, dt.datetime]:
