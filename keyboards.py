@@ -1,4 +1,5 @@
 from telebot import types
+from formatting import split_text_hw
 
 
 def useful_urls_keyboards():
@@ -23,12 +24,11 @@ def all_button_for_user():
     btn1 = types.KeyboardButton("Печенька!")
     btn2 = types.KeyboardButton("Weekly")
     btn3 = types.KeyboardButton("Ближайшие экзы")
-    btn4 = types.KeyboardButton("След. неделя")
-    btn5 = types.KeyboardButton("Активировать напоминания")
-    btn6 = types.KeyboardButton("Отключить напоминания")
-    markup.row(btn2, btn4)
-    markup.row(btn1, btn3)
-    markup.row(btn5, btn6)
+    btn4 = types.KeyboardButton("Активировать напоминания")
+    btn5 = types.KeyboardButton("Отключить напоминания")
+    markup.row(btn2, btn3)
+    markup.row(btn4, btn5)
+    markup.row(btn1)
     return markup
 
 
@@ -39,8 +39,22 @@ def all_buttons_for_admin():
     btn3 = types.KeyboardButton("Печенька!")
     btn4 = types.KeyboardButton("Weekly")
     btn5 = types.KeyboardButton("Ближайшие экзы")
-    btn6 = types.KeyboardButton("След. неделя")
     markup.row(btn1, btn2)
-    markup.row(btn4, btn6)
-    markup.row(btn3, btn5)
+    markup.row(btn4, btn5)
+    markup.row(btn3)
+    return markup
+
+
+def homework_buttons(deadlines_list: list):
+    markup = types.InlineKeyboardMarkup()
+    for one in deadlines_list:
+        text = f"{one['name_subject']} {one['type_hw'].upper()}-{one['number']} {one['time'].strftime('%d.%m.%y %H:%M')}"
+        if not one['flag']:
+            btn = types.InlineKeyboardButton(
+                f"{text}", callback_data=f"hw_done:{one['id']}")
+            markup.add(btn)
+        else:
+            btn = types.InlineKeyboardButton(
+                f"{text} ✅", callback_data=f"hw_done:{one['id']}")
+            markup.add(btn)
     return markup

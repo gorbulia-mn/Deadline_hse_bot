@@ -77,9 +77,11 @@ def list_future_hw():
 
 def init_users():
     con = sqlite3.connect(DB_PATH_EXAM)
-    con.execute('CREATE TABLE IF NOT EXISTS users(chat_id INTEGER PRIMARY KEY, flag INTEGER NOT NULL DEFAULT 0)')
+    con.execute(
+        'CREATE TABLE IF NOT EXISTS users(chat_id INTEGER PRIMARY KEY, flag INTEGER NOT NULL DEFAULT 0)')
     con.commit()
     con.close()
+
 
 def add_user(chat_id: int):
     con = sqlite3.connect(DB_PATH_EXAM)
@@ -87,14 +89,27 @@ def add_user(chat_id: int):
     con.commit()
     con.close()
 
+
 def set_user_flag(chat_id: int, value: int):
     con = sqlite3.connect(DB_PATH_EXAM)
     con.execute('UPDATE users SET flag=? WHERE chat_id=?', (value, chat_id))
     con.commit()
     con.close()
 
+
 def list_users_flag() -> list[int]:
     con = sqlite3.connect(DB_PATH_EXAM)
-    rows = [r[0] for r in con.execute('SELECT chat_id FROM users WHERE flag=1').fetchall()]
+    rows = [r[0] for r in con.execute(
+        'SELECT chat_id FROM users WHERE flag=1').fetchall()]
     con.close()
     return rows
+
+
+def set_flag_completed(id_hw):
+    conn = sqlite3.connect('hw_database.sql')
+    cur = conn.cursor()
+    cur.execute(
+        "UPDATE my_homework SET flag_completed=? WHERE id=?", (1, id_hw))
+    cur.close()
+    conn.commit()
+    conn.close()

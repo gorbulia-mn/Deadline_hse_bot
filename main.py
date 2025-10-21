@@ -1,11 +1,10 @@
 import telebot
-from telebot import types
 from config import BOT_TOKEN
-from keyboards import useful_urls_keyboards, all_button_for_user, all_buttons_for_admin
+from keyboards import useful_urls_keyboards, all_button_for_user, all_buttons_for_admin, homework_buttons
 from db import get_random_prediction
 from config import ADMINS
-from db import init_exam, add_exam, list_future_exams, set_user_flag, list_users_flag, init_users, add_user
-from formatting import format_exams_list, format_exam_reminder
+from db import init_exam, add_exam, list_future_exams, set_user_flag, list_users_flag, init_users, add_user, init_hw, add_hw, list_future_hw, set_flag_completed
+from formatting import format_exams_list, format_exam_reminder, split_text_hw
 from formatting import split_text_exam
 import datetime as dt
 from apscheduler.schedulers.background import BackgroundScheduler
@@ -15,6 +14,7 @@ bot = telebot.TeleBot(BOT_TOKEN)
 scheduler = BackgroundScheduler()
 scheduler.start()
 
+
 @bot.message_handler(commands=['start'])
 def main(message):  # ПЕРЕДЕЛАТЬ
     if message.from_user.id in ADMINS:
@@ -22,16 +22,17 @@ def main(message):  # ПЕРЕДЕЛАТЬ
             message.chat.id, "Привет! Ты админ.", reply_markup=all_buttons_for_admin())
     else:
         init_users()
-        add_user(message.chat.id)  
+        add_user(message.chat.id)
         bot.send_message(
             message.chat.id, "Привет! Ты пользователь.", reply_markup=all_button_for_user())
-        
+
 
 @bot.message_handler(func=lambda m: m.text == 'Активировать напоминания')
 def enable_reminders(message):
-    add_user(message.chat.id)          
+    add_user(message.chat.id)
     set_user_flag(message.chat.id, 1)
     bot.send_message(message.chat.id, 'Готово! Напоминания включены!')
+
 
 @bot.message_handler(func=lambda m: m.text == 'Отключить напоминания')
 def disable_reminders(message):
@@ -73,16 +74,18 @@ def pong(message):
 
 @bot.message_handler(func=lambda m: m.text == 'Ближайшие экзы')
 def handle_nearest_exams(message):
-    exams = list_future_exams()         
-    text = format_exams_list(exams)      
+    exams = list_future_exams()
+    text = format_exams_list(exams)
     bot.send_message(message.chat.id, text, parse_mode='HTML')
 
 
 @bot.message_handler(func=lambda m: m.text == 'Добавить экз')
 def admin_add_exam(message):
     init_exam()
-    bot.send_message(message.chat.id, "Напиши экзамен в виде строки: <курс> <тип_экза> <дд.мм.гггг> <чч:мм>")
+    bot.send_message(
+        message.chat.id, "Напиши экзамен в виде строки: <курс> <тип_экза> <дд.мм.гггг> <чч:мм>")
     bot.register_next_step_handler(message, exam_str)
+
 
 def exam_str(message):
     course, exam_type, at = split_text_exam(message.text)
@@ -102,11 +105,60 @@ def notify_exam_all(course: str, exam_type: str, at: dt.datetime, time_left_labe
 
 def schedule_exam_reminders_for_all(course: str, exam_type: str, at: dt.datetime):
     now = dt.datetime.now()
-    items = [("7 дней", dt.timedelta(days=7)), ("3 дня", dt.timedelta(days=3)), ("3 часа", dt.timedelta(hours=3))]
+    items = [("7 дней", dt.timedelta(days=7)), ("3 дня",
+                                                dt.timedelta(days=3)), ("3 часа", dt.timedelta(hours=3))]
     for label, delta in items:
         run_at = at - delta
         if run_at > now:
-            scheduler.add_job(notify_exam_all, trigger="date", run_date=run_at, args=(course, exam_type, at, label), id=f"exam_{course}_{exam_type}_{int(at.timestamp())}_{label}",replace_existing=True)
+            scheduler.add_job(notify_exam_all, trigger="date", run_date=run_at, args=(
+                course, exam_type, at, label), id=f"exam_{course}_{exam_type}_{int(at.timestamp())}_{label}", replace_existing=True)
 
 
-bot.infinity_polling()
+@bot.message_handler(func=lambda m: m.text == "Добавить дедлайн")
+def admin_add_hw(message):
+    init_hw()
+    bot.send_message(
+        message.chat.id, "Напиши дедлайн в виде такой строки:\n\n<i>название_предмета тип_дз(дз/идз) номер_дз дата_дедлайна (дд.мм.гг) время_дедлайна (чч:мм) </i>", parse_mode="HTML")
+    bot.register_next_step_handler(message, hw_str)
+
+
+def hw_str(message):
+    s, t, n, d = split_text_hw(message.text)
+    add_hw(s, t, n, d)
+    bot.send_message(message.chat.id, "Твой дедлайн по д/з записан!")
+
+
+# @bot.message_handler(func=lambda m: m.text == "Weekly")
+# def hw_send_list(message):
+#     all_next_hw = list_future_hw()
+#     if len(all_next_hw) == 0:
+#         bot.send_message(message.chat.id, "Так список пустой шо ты кайфуй)")
+#     else:
+#         m = ""
+#         for one in all_next_hw:
+#             m += f"{one['name_subject']} {one['type_hw'].upper()}-{one['number']} {one['time'].strftime('%d.%m.%y %H:%M')}\n"
+#         bot.send_message(message.chat.id, m)
+
+
+@bot.message_handler(func=lambda m: m.text == "Weekly")
+def hw_send_buttons(message):
+    homework = list_future_hw()
+    bot.send_message(
+        message.chat.id, "Отметьте выполненный дедлайн:", reply_markup=(homework_buttons(homework)))
+
+
+@bot.callback_query_handler(func=lambda m: m.data.startswith("hw_done:"))
+def callback_done_hw(call):
+    hw_id = int(call.data.split(":", 1)[1])
+    set_flag_completed(hw_id)
+    bot.answer_callback_query(call.id, "Домашка отмечена выполненной!")
+
+    homework = list_future_hw()
+    bot.edit_message_text("Отметьте выполненный дедлайн:", chat_id=call.message.chat.id,
+                          message_id=call.message.message_id, reply_markup=homework_buttons(homework))
+
+
+if __name__ == "__main__":
+    init_exam()
+    init_users()
+    bot.infinity_polling()
