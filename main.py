@@ -68,6 +68,9 @@ def user_buttons(message):
     if message.from_user.id not in ADMINS:
         bot.send_message(message.chat.id, "Выбери, что тебе нужно",
                          reply_markup=all_button_for_user())
+    else:
+        bot.send_message(message.chat.id, "У тебя и так есть эти кнопки :)",
+                         reply_markup=all_buttons_for_admin())
 
 
 @bot.message_handler(commands=['buttons_admin'])
@@ -75,6 +78,8 @@ def admin_buttons(message):
     if message.from_user.id in ADMINS:
         bot.send_message(message.chat.id, "Выбери, что тебе нужно",
                          reply_markup=all_buttons_for_admin())
+    bot.send_message(message.chat.id, "Тебе не нужны эти кнопки :)",
+                     reply_markup=all_button_for_user())
 
 
 @bot.message_handler(commands=['ping'])
