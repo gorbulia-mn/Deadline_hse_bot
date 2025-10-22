@@ -49,12 +49,9 @@ def homework_buttons(deadlines_list: list):
     markup = types.InlineKeyboardMarkup()
     for one in deadlines_list:
         text = f"{one['name_subject']} {one['type_hw'].upper()}-{one['number']} {one['time'].strftime('%d.%m.%y %H:%M')}"
-        if not one['flag']:
-            btn = types.InlineKeyboardButton(
-                f"{text}", callback_data=f"hw_done:{one['id']}")
-            markup.add(btn)
-        else:
-            btn = types.InlineKeyboardButton(
-                f"{text} ✅", callback_data=f"hw_done:{one['id']}")
-            markup.add(btn)
+        if one['flag']:
+            text += "✅"
+        btn = types.InlineKeyboardButton(
+            f"{text}", callback_data=f"hw_done:{one['id']}")
+        markup.add(btn)
     return markup

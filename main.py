@@ -1,9 +1,10 @@
+import sqlite3
 import telebot
 from config import BOT_TOKEN
 from keyboards import useful_urls_keyboards, all_button_for_user, all_buttons_for_admin, homework_buttons
 from db import get_random_prediction
 from config import ADMINS
-from db import init_exam, add_exam, list_future_exams, set_user_flag, list_users_flag, init_users, add_user, init_hw, add_hw, list_future_hw, set_flag_completed
+from db import init_exam, add_exam, list_future_exams, set_user_flag, list_users_flag, init_users, add_user, init_hw_db, add_hw_global, list_future_hw, set_flag_completed, append_hw_to_user, get_all_users_id, are_you_a_new_user
 from formatting import format_exams_list, format_exam_reminder, split_text_hw
 from formatting import split_text_exam
 import datetime as dt
@@ -16,7 +17,16 @@ scheduler.start()
 
 
 @bot.message_handler(commands=['start'])
-def main(message):  # ПЕРЕДЕЛАТЬ
+def main(message):
+    user_id = str(message.chat.id)
+    conn = sqlite3.connect('hw_database.sql')
+    cur = conn.cursor()
+    cur.execute(
+        "INSERT OR IGNORE INTO id_from_users(id_user) VALUES (?)", (user_id,))
+    conn.commit()
+    cur.close()
+    conn.close()
+    are_you_a_new_user(message.chat.id)
     if message.from_user.id in ADMINS:
         bot.send_message(
             message.chat.id, "Привет! Ты админ.", reply_markup=all_buttons_for_admin())
@@ -56,14 +66,14 @@ def send_cookie(message):
 @bot.message_handler(commands=['buttons_user'])
 def user_buttons(message):
     if message.from_user.id not in ADMINS:
-        bot.send_message(message.chat.id, "Выберите, что вам нужно",
+        bot.send_message(message.chat.id, "Выбери, что тебе нужно",
                          reply_markup=all_button_for_user())
 
 
 @bot.message_handler(commands=['buttons_admin'])
 def admin_buttons(message):
     if message.from_user.id in ADMINS:
-        bot.send_message(message.chat.id, "Выберите, что вам нужно",
+        bot.send_message(message.chat.id, "Выбери, что тебе нужно",
                          reply_markup=all_buttons_for_admin())
 
 
@@ -121,7 +131,7 @@ def schedule_exam_reminders_for_all(course: str, exam_type: str, at: dt.datetime
 
 @bot.message_handler(func=lambda m: m.text == "Добавить дедлайн")
 def admin_add_hw(message):
-    init_hw()
+    init_hw_db()
     bot.send_message(
         message.chat.id, "Напиши дедлайн в виде такой строки:\n\n<i>[название_предмета] [тип_дз(дз/идз)] [номер_дз] [дд.мм.гг] [чч:мм]</i>", parse_mode="HTML")
     bot.register_next_step_handler(message, hw_str)
@@ -134,7 +144,10 @@ def hw_str(message):
         bot.send_message(message.chat.id, "Возможно, ты записал д/з не по формату. Попробуй еще раз.",
                          reply_markup=all_button_for_user())
     else:
-        add_hw(s, t, n, d)
+        hw_id = add_hw_global(s, t, n, d)
+        all_user_id = get_all_users_id()
+        for user_id in all_user_id:
+            append_hw_to_user(user_id, hw_id)
         bot.send_message(message.chat.id, "Твой дедлайн по д/з записан!")
 
 
@@ -152,23 +165,33 @@ def hw_str(message):
 
 @bot.message_handler(func=lambda m: m.text == "Weekly")
 def hw_send_buttons(message):
-    homework = list_future_hw()
-    bot.send_message(
-        message.chat.id, "Отметьте выполненный дедлайн:", reply_markup=(homework_buttons(homework)))
+    user_id = str(message.chat.id)
+    are_you_a_new_user(user_id)
+    homework = list_future_hw(user_id)
+    if len(homework):
+        bot.send_message(message.chat.id, "Отметь выполненный дедлайн:",
+                         reply_markup=(homework_buttons(homework)))
+    else:
+        bot.send_message(message.chat.id, "Дедлайнов нет :)")
 
 
 @bot.callback_query_handler(func=lambda m: m.data.startswith("hw_done:"))
 def callback_done_hw(call):
+    user_id = str(call.message.chat.id)
     hw_id = int(call.data.split(":", 1)[1])
-    set_flag_completed(hw_id)
+    set_flag_completed(user_id, hw_id)
     bot.answer_callback_query(call.id, "Домашка отмечена выполненной!")
 
-    homework = list_future_hw()
-    bot.edit_message_text("Отметьте выполненный дедлайн:", chat_id=call.message.chat.id,
-                          message_id=call.message.message_id, reply_markup=homework_buttons(homework))
+    homework = list_future_hw(user_id)
+    if len(homework):
+        bot.edit_message_text("Отметь выполненный дедлайн:", chat_id=call.message.chat.id,
+                              message_id=call.message.message_id, reply_markup=homework_buttons(homework))
+    else:
+        bot.send_message(call.message.chat.id, "Дедлайнов нет :)")
 
 
 if __name__ == "__main__":
     init_exam()
     init_users()
+    init_hw_db()
     bot.infinity_polling()
