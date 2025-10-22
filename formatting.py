@@ -1,9 +1,11 @@
 import datetime as dt
 
-def d(d: dt.datetime) -> str: 
+
+def d(d: dt.datetime) -> str:
     return d.strftime("%d.%m.%Y")
 
-def t(d: dt.datetime) -> str: 
+
+def t(d: dt.datetime) -> str:
     return d.strftime("%H:%M")
 
 
@@ -12,17 +14,22 @@ def format_exams_list(exams: list[dict]) -> str:
         return 'Ближайших экзаменов нет'
     lines = ['<b>Ближайшие экзамены:</b>']
     for e in exams:
-        lines.append(f'• <b>{e['course']}</b> — {e['exam_type']} {d(e['at'])} {t(e['at'])}')
+        lines.append(
+            f'• <b>{e['course']}</b> — {e['exam_type']} {d(e['at'])} {t(e['at'])}')
     return "\n".join(lines)
 
 
-exam_case = {"экзамен": "экзамена", "коллоквиум": "коллоквиума", "зачёт": "зачёта", "КР": "КР"}
-course_case = {"питон": "питону", "матан": "матану", "линал": "линалу", "дискра": "дискре", "орг": "орг", "история": "истории", "бжд": "бжд"}
+exam_case = {"экзамен": "экзамена",
+             "коллоквиум": "коллоквиума", "зачёт": "зачёта", "КР": "КР"}
+course_case = {"питон": "питону", "матан": "матану", "линал": "линалу",
+               "дискра": "дискре", "орг": "орг", "история": "истории", "бжд": "бжд"}
+
 
 def course_dative(name: str) -> str:
     n = name.strip()
     base = course_case.get(n.lower(), n)
     return base.capitalize() if n[:1].isupper() else base
+
 
 def exam_type_genitive(x: str) -> str:
     return exam_case.get(x.strip().lower(), x)
@@ -38,7 +45,6 @@ def format_exam_reminder(course: str, exam_type: str, at: dt.datetime, time_left
     tl = normalize_time_left(time_left)
     cd = course_dative(course)
     return f"Напоминание\nДо {et} по <b>{cd}</b> осталось {tl}.\nДата: {d(at)}\nВремя: <b>{t(at)}</b>"
-
 
 
 def split_text_hw(text: str) -> tuple[str, str, int, dt.datetime]:

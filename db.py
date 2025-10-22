@@ -40,41 +40,6 @@ def list_future_exams():
              "exam_type": r[3]} for r in rows]
 
 
-# def homework_done():
-#     pass
-
-
-def init_hw():
-    conn = sqlite3.connect('hw_database.sql')
-    cur = conn.cursor()
-    cur.execute('CREATE TABLE IF NOT EXISTS my_homework(id INTEGER PRIMARY KEY AUTOINCREMENT, name_subject TEXT NOT NULL, type_hw TEXT NOT NULL, number INTEGER, date_dd TEXT NOT NULL, flag_completed INTEGER NOT NULL DEFAULT 0)')
-    conn.commit()
-    cur.close()
-    conn.close()
-
-
-def add_hw(sub: str, t: str,  n: int, date: dt.datetime, f: int = 0):
-    conn = sqlite3.connect('hw_database.sql')
-    cur = conn.cursor()
-    cur.execute('INSERT INTO my_homework(name_subject, type_hw, number, date_dd, flag_completed) VALUES(?, ?, ?, ?, ?)',
-                (sub, t, n, date.strftime("%d.%m.%y %H:%M"), f))
-    conn.commit()
-    cur.close()
-    conn.close()
-
-
-def list_future_hw():
-    time_now = dt.datetime.now()
-    conn = sqlite3.connect('hw_database.sql')
-    cur = conn.cursor()
-    cur.execute('SELECT id, type_hw, name_subject, number, date_dd, flag_completed FROM my_homework WHERE date_dd >= ? ORDER BY date_dd ASC',
-                (time_now.strftime("%d.%m.%y %H:%M"),))
-    all_hw = cur.fetchall()
-    cur.close()
-    conn.close()
-    return [{"id": one[0], "type_hw": one[1], "name_subject": one[2], "number": one[3], "time": dt.datetime.strptime(one[4], "%d.%m.%y %H:%M"), "flag": one[5]} for one in all_hw]
-
-
 def init_users():
     con = sqlite3.connect(DB_PATH_EXAM)
     con.execute(
@@ -106,11 +71,83 @@ def list_users_flag() -> list[int]:
     return rows
 
 
-def set_flag_completed(id_hw):
+def init_hw_db():
     conn = sqlite3.connect('hw_database.sql')
+    conn.execute('PRAGMA foreign_keys = ON;')
+    cur = conn.cursor()
+    cur.execute('CREATE TABLE IF NOT EXISTS id_from_users (id_user)')
+    cur.execute('CREATE TABLE IF NOT EXISTS all_homework(id INTEGER PRIMARY KEY AUTOINCREMENT, name_subject TEXT NOT NULL, type_hw TEXT NOT NULL, number INTEGER, date_dd TEXT NOT NULL)')
+    cur.execute('CREATE TABLE IF NOT EXISTS user_homework(user_id TEXT NOT NULL, hw_id   INTEGER NOT NULL, flag_completed INTEGER NOT NULL DEFAULT 0, PRIMARY KEY(user_id, hw_id), FOREIGN KEY(hw_id) REFERENCES all_homework(id) ON DELETE CASCADE)')
+    conn.commit()
+    cur.close()
+    conn.close()
+
+
+def add_hw_global(sub: str, t: str,  n: int, date: dt.datetime, f: int = 0):
+    conn = sqlite3.connect('hw_database.sql')
+    conn.execute('PRAGMA foreign_keys = ON;')
+    cur = conn.cursor()
+    cur.execute('INSERT INTO all_homework(name_subject, type_hw, number, date_dd) VALUES(?, ?, ?, ?)',
+                (sub, t, n, date.strftime("%d.%m.%y %H:%M")))
+    hw_id = cur.lastrowid
+    conn.commit()
+    cur.close()
+    conn.close()
+    return hw_id
+
+
+def append_hw_to_user(user_id: str, hw_id: str):
+    conn = sqlite3.connect('hw_database.sql')
+    conn.execute('PRAGMA foreign_keys = ON;')
     cur = conn.cursor()
     cur.execute(
-        "UPDATE my_homework SET flag_completed=? WHERE id=?", (1, id_hw))
-    cur.close()
+        'INSERT OR IGNORE INTO user_homework (user_id, hw_id) VALUES (?, ?)', (user_id, hw_id))
     conn.commit()
+    cur.close()
+    conn.close()
+
+
+def list_future_hw(user_id: str):
+    time_now = dt.datetime.now()
+    conn = sqlite3.connect('hw_database.sql')
+    conn.execute('PRAGMA foreign_keys = ON;')
+    cur = conn.cursor()
+    cur.execute('SELECT h.id, h.type_hw, h.name_subject, h.number, h.date_dd, u.flag_completed FROM user_homework AS u JOIN all_homework AS h ON h.id = u.hw_id WHERE u.user_id = ? AND h.date_dd >= ? ORDER BY h.date_dd ASC',
+                (user_id, time_now.strftime("%d.%m.%y %H:%M"),))
+    all_hw = cur.fetchall()
+    cur.close()
+    conn.close()
+    return [{"id": one[0], "type_hw": one[1], "name_subject": one[2], "number": one[3], "time": dt.datetime.strptime(one[4], "%d.%m.%y %H:%M"), "flag": one[5]} for one in all_hw]
+
+
+def set_flag_completed(user_id: str, hw_id: str):
+    conn = sqlite3.connect('hw_database.sql')
+    conn.execute('PRAGMA foreign_keys = ON;')
+    cur = conn.cursor()
+    cur.execute(
+        "UPDATE user_homework SET flag_completed=1 WHERE hw_id=? AND user_id=?", (hw_id, user_id))
+    conn.commit()
+    cur.close()
+    conn.close()
+
+
+def get_all_users_id():
+    conn = sqlite3.connect('hw_database.sql')
+    conn.execute('PRAGMA foreign_keys = ON;')
+    cur = conn.cursor()
+    cur.execute('SELECT id_user FROM id_from_users')
+    users = [r[0] for r in cur.fetchall()]
+    cur.close()
+    conn.close()
+    return users
+
+
+def are_you_a_new_user(user_id: str):
+    conn = sqlite3.connect('hw_database.sql')
+    now = dt.datetime.now()
+    conn.execute('PRAGMA foreign_keys = ON;')
+    cur = conn.cursor()
+    cur.execute('INSERT OR IGNORE INTO user_homework (user_id, hw_id) SELECT ?, h.id FROM all_homework AS h WHERE h.date_dd >= ?', (user_id, now,))
+    conn.commit()
+    cur.close()
     conn.close()
